@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "903052396680",
+    "project_id": "the-host-6761b",
+    "storage_bucket": "the-host-6761b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903052396680:android:0aaa3032e082bc1c3ef73d",
+        "android_client_info": {
+          "package_name": "com.example.disasteralert"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8kQob--JPndxCXJkqB15luEv-ojuGKjg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903052396680:android:85e37282963c07493ef73d",
+        "android_client_info": {
+          "package_name": "com.example.disaterreportingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8kQob--JPndxCXJkqB15luEv-ojuGKjg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903052396680:android:122148f82fa027643ef73d",
+        "android_client_info": {
+          "package_name": "com.example.mamashubtaskapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8kQob--JPndxCXJkqB15luEv-ojuGKjg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

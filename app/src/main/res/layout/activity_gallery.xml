@@ -1,0 +1,63 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp">
+
+    <!-- TextView for description -->
+    <TextView
+        android:id="@+id/diplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose an Image or Video"
+        android:textSize="18sp"
+        android:layout_gravity="center"/>
+
+    <!-- ImageView to show selected image -->
+    <ImageView
+        android:id="@+id/image_taken"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        android:layout_gravity="center" />
+
+    <!-- VideoView to show selected video -->
+    <VideoView
+        android:id="@+id/video_taken"
+        android:layout_width="300dp"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        android:layout_gravity="center"/>
+
+    <!-- Button to choose an image -->
+    <Button
+        android:id="@+id/imageBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose Image"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center"/>
+
+    <!-- Button to choose a video -->
+    <Button
+        android:id="@+id/videoBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose Video"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center"/>
+
+    <!-- Button to upload media to Firebase -->
+    <Button
+        android:id="@+id/send_to_cloud"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upload to Cloud"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
+
+</LinearLayout>

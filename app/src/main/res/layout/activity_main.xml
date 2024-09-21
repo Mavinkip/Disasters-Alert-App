@@ -1,0 +1,61 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/location_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Location: Not available"
+        android:textSize="16sp"
+        android:padding="8dp"/>
+
+    <ImageView
+        android:id="@+id/captured_image"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        android:contentDescription="Captured Image"/>
+
+    <VideoView
+        android:id="@+id/captured_video"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/capture_image_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Capture Image" />
+
+    <Button
+        android:id="@+id/capture_video_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Capture Video" />
+
+    <EditText
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Add Description"
+        android:minHeight="48dp" />
+
+    <Button
+        android:id="@+id/upload_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Upload Media" />
+
+    <ProgressBar
+        android:id="@+id/upload_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
+
+</LinearLayout>
