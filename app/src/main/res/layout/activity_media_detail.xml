@@ -1,36 +1,223 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/gredient_background"
+    android:padding="10dp">
 
-    <!-- Loading ProgressBar for video loading -->
-    <ProgressBar
-        android:id="@+id/media_loading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" /> <!-- Initially hidden -->
-
-    <ImageView
-        android:id="@+id/media_image"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:visibility="gone"
-        android:scaleType="centerCrop" />
-
-    <VideoView
-        android:id="@+id/media_video"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/media_description"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:paddingTop="16dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-</LinearLayout>
+        <!-- Media Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
+
+            <!-- ImageView for Media (Initially hidden) -->
+            <ImageView
+                android:id="@+id/media_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:scaleType="centerCrop" />
+
+            <!-- VideoView for Media (Initially hidden) -->
+            <VideoView
+                android:id="@+id/media_video"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:visibility="gone" />
+
+            <!-- Description Text -->
+            <TextView
+                android:id="@+id/media_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:paddingTop="16dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Progress Bar for Loading -->
+        <ProgressBar
+            android:id="@+id/media_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" /> <!-- Initially hidden -->
+
+        <!-- Circular Image Buttons Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/weatherid"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/weather2"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/CircularImageStyle" />
+
+            <Space
+                android:layout_width="10dp"
+                android:layout_height="wrap_content" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/mapid"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/pointer"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/CircularImageStyle" />
+
+            <Space
+                android:layout_width="10dp"
+                android:layout_height="wrap_content" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/deployid"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@mipmap/ic_deploy_round"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/CircularImageStyle" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <RadioGroup
+                android:id="@+id/radio_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <!-- First Row of Radio Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <!-- Level 1 -->
+                    <RadioButton
+                        android:id="@+id/radio_level_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/radio_button_background_green"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:layout_marginLeft="10dp"
+                        android:padding="12dp"
+                        android:text="Level 1"
+                        android:textColor="@android:color/white" />
+
+                    <!-- Level 2 -->
+                    <RadioButton
+                        android:id="@+id/radio_level_2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/radio_button_background_yellow"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:text="Level 2"
+                        android:textColor="@android:color/black" />
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"/>
+
+                <!-- Second Row of Radio Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <!-- Level 3 -->
+                    <RadioButton
+                        android:id="@+id/radio_level_3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/radio_button_background_orange"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:text="Level 3"
+                        android:textColor="@android:color/white" />
+
+                    <!-- Level 4 -->
+                    <RadioButton
+                        android:id="@+id/radio_level_4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/radio_button_background_red"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:text="Level 4"
+                        android:textColor="@android:color/white" />
+                </LinearLayout>
+            </RadioGroup>
+
+        </LinearLayout>
+
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="16dp">
+
+            <!-- Text Area for Input -->
+            <EditText
+                android:id="@+id/disaster_details_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minLines="3"
+                android:hint="Enter disaster details..."
+                android:background="@drawable/rounded_edittext_background"
+                android:padding="12dp"
+                android:textSize="16sp"
+                android:textColorHint="@color/black"
+                android:textColor="@android:color/black" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="5dp" />
+
+            <!-- Submit Button -->
+            <Button
+                android:id="@+id/alert_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ALERT"
+                android:background="@drawable/button_color"
+                android:textColor="@android:color/white"
+                android:textSize="15sp"
+                android:padding="12dp"
+                android:layout_gravity="center" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

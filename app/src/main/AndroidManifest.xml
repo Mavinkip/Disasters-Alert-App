@@ -2,15 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Permissions for camera and storage access -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-    <!-- Feature declaration for camera (optional) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" /> <!-- Feature declaration for camera (optional) -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -26,14 +25,40 @@
         android:theme="@style/Theme.DisasterAlert"
         tools:targetApi="31">
         <activity
+            android:name=".AdminDashboardActivity"
+            android:exported="false" />
+        <activity
             android:name=".MediaDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
-
+            android:name=".OtherServicesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HospitalActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PoliceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DeploymentActivity"
+            android:exported="false" />
+        <activity
+            android:name=".GeocodeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WeatherActivity"
             android:exported="false" />
         <activity
             android:name=".MapActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MediaListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TickActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RouteActivity"
             android:exported="false" />
         <activity
             android:name=".GalleryActivity"
@@ -43,14 +68,12 @@
             android:exported="false" /> <!-- Main Activity (Launcher) -->
         <activity
             android:name=".SplashActivity"
-            android:exported="false" /> <!-- SignUpActivity -->
+            android:exported="false" />
         <activity
             android:name=".SignUpActivity"
-            android:exported="false" /> <!-- LoginActivity (Launcher) -->
+            android:exported="false" />
         <activity
-            android:name=".MediaListActivity"
-
-
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

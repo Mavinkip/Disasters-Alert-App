@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">Disaster Alert</string>
+    <string-array name="transport_modes">
+        <item>car</item>
+        <item>bicycle</item>
+        <item>foot</item>
+    </string-array>
+    <string-array name="emergency_services">
+        <item>Police</item>
+        <item>Fire Department</item>
+        <item>Ambulance/Medical Emergency</item>
+        <item>Search and Rescue (SAR)</item>
+        <item>Disaster Response Teams</item>
+        <item>Coast Guard</item>
+        <item>Hazardous Materials (HazMat) Response</item>
+        <item>Utility Emergency Services</item>
+        <item>Traffic Control</item>
+        <item>Public Health Services</item>
+        <item>Civil Defense</item>
+        <item>Mountain/Forest Rescue</item>
+        <item>Animal Control</item>
+        <item>Bomb Squad/Explosive Ordnance Disposal (EOD)</item>
+        <item>Flood Rescue</item>
+        <item>Crisis Counseling Services</item>
+        <item>Environmental Emergency Response</item>
+        <item>Volunteer Organizations</item>
+        <item>Urban Search and Rescue (USAR)</item>
+        <item>National Guard or Military</item>
+    </string-array>
 </resources>

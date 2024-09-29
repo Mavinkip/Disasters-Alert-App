@@ -11,14 +11,10 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import java.io.ByteArrayOutputStream
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,8 +25,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
     private lateinit var videoView: VideoView
     private lateinit var progressBar: ProgressBar
-    private lateinit var sendToCloud: Button
+    private lateinit var uploadButton: Button
     private lateinit var locationText: TextView
+    private lateinit var status_text: TextView
+
+
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var latitude: Double? = null
@@ -45,42 +44,41 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Initialize Firebase Storage and Firestore
         storage = FirebaseStorage.getInstance()
         firestore = FirebaseFirestore.getInstance()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        // Initialize UI components
         imageView = findViewById(R.id.captured_image)
         videoView = findViewById(R.id.captured_video)
         progressBar = findViewById(R.id.upload_progress)
-        sendToCloud = findViewById(R.id.upload_button)
+        uploadButton = findViewById(R.id.upload_button)
         locationText = findViewById(R.id.location_text)
+
+        status_text = findViewById(R.id.status_text)
+
+        status_text.setOnClickListener {
+            val intent = Intent(this, MediaListActivity ::class.java)
+            startActivity(intent)
+        }
+
+
 
         // Check and request permissions
         checkPermissions()
 
-        findViewById<Button>(R.id.capture_image_button).setOnClickListener {
+        // Set click listeners for buttons
+        findViewById<ImageButton>(R.id.capture_image_button).setOnClickListener {
             dispatchTakePictureIntent()
         }
 
-        findViewById<Button>(R.id.capture_video_button).setOnClickListener {
+        findViewById<ImageButton>(R.id.capture_video_button).setOnClickListener {
             dispatchTakeVideoIntent()
         }
 
-        sendToCloud.setOnClickListener {
-            val description = findViewById<EditText>(R.id.description).text.toString().trim()
-
-            if (description.isEmpty()) {
-                Toast.makeText(this, "Please provide a description.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (::imageUri.isInitialized) {
-                uploadImage(description)
-            } else if (::videoUri.isInitialized) {
-                uploadVideo(description)
-            } else {
-                Toast.makeText(this, "No media to upload", Toast.LENGTH_SHORT).show()
-            }
+        uploadButton.setOnClickListener {
+            handleUpload()
         }
 
         // Get the current location
@@ -104,7 +102,6 @@ class MainActivity : AppCompatActivity() {
                     longitude = location.longitude
                     locationText.text = "Location: Lat: $latitude, Long: $longitude"
                 } else {
-                    Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show()
                     locationText.text = "Location: Not available"
                 }
             }
@@ -142,7 +139,7 @@ class MainActivity : AppCompatActivity() {
         imageView.visibility = ImageView.VISIBLE
         imageUri = data.data ?: getImageUriFromBitmap(data.extras?.get("data") as Bitmap)
         imageView.setImageURI(imageUri)
-        sendToCloud.visibility = Button.VISIBLE
+        uploadButton.visibility = Button.VISIBLE
     }
 
     private fun previewVideo(data: Intent) {
@@ -151,7 +148,24 @@ class MainActivity : AppCompatActivity() {
         videoUri = data.data!!
         videoView.setVideoURI(videoUri)
         videoView.start()
-        sendToCloud.visibility = Button.VISIBLE
+        uploadButton.visibility = Button.VISIBLE
+    }
+
+    private fun handleUpload() {
+        val description = findViewById<EditText>(R.id.description).text.toString().trim()
+
+        if (description.isEmpty()) {
+            Toast.makeText(this, "Please provide a description.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (::imageUri.isInitialized) {
+            uploadImage(description)
+        } else if (::videoUri.isInitialized) {
+            uploadVideo(description)
+        } else {
+            Toast.makeText(this, "No media to upload", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun uploadImage(description: String) {
@@ -164,7 +178,6 @@ class MainActivity : AppCompatActivity() {
                 imageRef.downloadUrl.addOnSuccessListener { uri ->
                     val downloadUrl = uri.toString()
                     sendDescriptionToFirestore(description, downloadUrl, "image")
-                    Toast.makeText(this, "Image uploaded successfully", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener {
@@ -185,7 +198,6 @@ class MainActivity : AppCompatActivity() {
                 videoRef.downloadUrl.addOnSuccessListener { uri ->
                     val downloadUrl = uri.toString()
                     sendDescriptionToFirestore(description, downloadUrl, "video")
-                    Toast.makeText(this, "Video uploaded successfully", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener {
@@ -202,7 +214,9 @@ class MainActivity : AppCompatActivity() {
             "uniqueId" to uniqueId,
             "description" to description,
             "mediaUrl" to mediaUrl,
-            "mediaType" to mediaType
+            "mediaType" to mediaType,
+            "latitude" to latitude,
+            "longitude" to longitude
         )
 
         firestore.collection("media").document(uniqueId)
@@ -215,7 +229,6 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-
     private fun getImageUriFromBitmap(bitmap: Bitmap): Uri {
         val path = MediaStore.Images.Media.insertImage(contentResolver, bitmap, "Captured Image", null)
         return Uri.parse(path)
@@ -226,7 +239,7 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_CAMERA_PERMISSION -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission granted
+                    // Permission granted, do nothing
                 } else {
                     Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show()
                 }

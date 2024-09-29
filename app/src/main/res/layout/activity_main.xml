@@ -3,59 +3,170 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@drawable/redishblue"
+
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/location_text"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Location: Not available"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/location_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Location: Not available"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:layout_weight="1"
+            android:paddingEnd="8dp" />
+
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status: Active"
         android:textSize="16sp"
-        android:padding="8dp"/>
+        android:textColor="#FFFFFF" />
+    </LinearLayout>
 
-    <ImageView
-        android:id="@+id/captured_image"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:visibility="gone"
-        android:contentDescription="Captured Image"/>
 
-    <VideoView
-        android:id="@+id/captured_video"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:visibility="gone"/>
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="vertical"
+android:padding="8dp"
+android:layout_marginBottom="16dp"
+android:clipToPadding="false"
+android:background="@drawable/rounded_corners">
 
-    <Button
-        android:id="@+id/capture_image_button"
+<TextView
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:text="ATTENTION ATENTION !!"
+android:textColor="#FFDD33"
+    android:gravity="center"
+    android:padding="8dp"/>
+
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:padding="4dp">
+
+<LinearLayout
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="2"
+    android:orientation="vertical">
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Capture Image" />
+        android:text="DISASTER INFORMATION"
+        android:textColor="#FFFFFF"
+    android:gravity="center"/>
+</LinearLayout>
 
-    <Button
-        android:id="@+id/capture_video_button"
+<LinearLayout
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:orientation="vertical">
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Capture Video" />
+        android:text="Area"
+        android:gravity="center"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"/>
+</LinearLayout>
+</LinearLayout>
+    </LinearLayout>
 
-    <EditText
-        android:id="@+id/description"
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="200dp"
+android:orientation="horizontal"
+android:padding="4dp">
+
+<ImageView
+    android:id="@+id/captured_image"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:visibility="gone"
+    android:background="#000000"
+android:contentDescription="Captured Image"/>
+
+<VideoView
+    android:id="@+id/captured_video"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:visibility="gone"/>
+</LinearLayout>
+
+<LinearLayout
+    android:layout_gravity="center"
+    android:gravity="center"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:padding="8dp">
+
+<ImageButton
+    android:id="@+id/capture_image_button"
+    android:layout_width="50dp"
+    android:layout_height="50dp"
+    android:background="@null"
+    android:src="@drawable/baseline_photo_camera_24"
+    android:contentDescription="Capture Image" />
+
+<ImageButton
+    android:id="@+id/capture_video_button"
+    android:layout_width="50dp"
+    android:layout_height="50dp"
+    android:background="@null"
+    android:src="@drawable/baseline_videocam_24"
+    android:contentDescription="Capture Video" />
+</LinearLayout>
+
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="vertical"
+android:padding="8dp">
+
+<EditText
+    android:id="@+id/description"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minLines="5"
+    android:hint="Add Description"
+    android:minHeight="48dp"
+    android:background="@drawable/rounded_edit_text"
+android:textColor="#000000"/>
+    <Space
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Add Description"
-        android:minHeight="48dp" />
+        android:layout_height="48dp"/>
 
     <Button
         android:id="@+id/upload_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Upload Media" />
+        android:background="@drawable/rounded_edit_text"
+        android:text="Upload Media"
+        android:textColor="#263238" />
 
-    <ProgressBar
-        android:id="@+id/upload_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"/>
-
+<ProgressBar
+    android:id="@+id/upload_progress"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:visibility="gone"/>
 </LinearLayout>
+    </LinearLayout>

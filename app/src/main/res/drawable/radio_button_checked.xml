@@ -1,0 +1,9 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/blue" /> <!-- Set the background color -->
+            <size android:width="50dp" android:height="50dp" /> <!-- Set the size of the radio button -->
+        </shape>
+    </item>
+    <item android:drawable="@drawable/tick_icon" /> <!-- Your tick icon here -->
+</layer-list>
