@@ -13,6 +13,7 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
+
         <TextView
             android:id="@+id/location_text"
             android:layout_width="0dp"
@@ -22,6 +23,10 @@
             android:textColor="#FFFFFF"
             android:layout_weight="1"
             android:paddingEnd="8dp" />
+
+
+
+
 
         <TextView
             android:id="@+id/status_text"
@@ -34,19 +39,23 @@
 
 
 <LinearLayout
-android:layout_width="match_parent"
+    android:id="@+id/alertLayout"
+    android:layout_width="match_parent"
 android:layout_height="wrap_content"
 android:orientation="vertical"
 android:padding="8dp"
 android:layout_marginBottom="16dp"
 android:clipToPadding="false"
-android:background="@drawable/rounded_corners">
+android:background="@drawable/radio_button_background_red">
 
 <TextView
+    android:id="@+id/disaster_info_text"
+
 android:layout_width="match_parent"
 android:layout_height="wrap_content"
 android:text="ATTENTION ATENTION !!"
-android:textColor="#FFDD33"
+android:textColor="@color/black"
+    android:textStyle="bold"
     android:gravity="center"
     android:padding="8dp"/>
 
@@ -63,11 +72,16 @@ android:padding="4dp">
     android:orientation="vertical">
 
     <TextView
+        android:id="@+id/alert_details_text"
+
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="DISASTER INFORMATION"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/black"
+        android:textStyle="normal"
+        android:textSize="16sp"
     android:gravity="center"/>
+
 </LinearLayout>
 
 <LinearLayout
@@ -77,12 +91,15 @@ android:padding="4dp">
     android:orientation="vertical">
 
     <TextView
+        android:id="@+id/alert_level_text"
+
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Area"
+
         android:gravity="center"
         android:textStyle="bold"
-        android:textColor="#FFFFFF"/>
+        android:textColor="@color/black"/>
 </LinearLayout>
 </LinearLayout>
     </LinearLayout>

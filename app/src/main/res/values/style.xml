@@ -4,5 +4,19 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <!-- res/values/styles.xml -->
+        <!-- Style for card titles -->
+        <style name="CardTitle">
+            <item name="android:textSize">18sp</item>
+            <item name="android:textStyle">bold</item>
+            <item name="android:textColor">#FFFFFF</item>
+        </style>
+
+        <!-- Style for card descriptions -->
+        <style name="CardDescription">
+            <item name="android:textSize">14sp</item>
+            <item name="android:textColor">#FFFFFF</item>
+        </style>
+
 
 </resources>

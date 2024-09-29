@@ -10,6 +10,9 @@
     <color name="custom_color">#3CF1EEF1</color>
     <color name="attention_color">#FFDD33</color> <!-- Attention Color -->
     <color name="button_green">#4CAF50</color> <!-- Green for Button Background -->
-    <color name="red">#C80000</color> <!-- Green for Button Background -->
+    <color name="red">#C80000</color>
+    <color name="yellow">#EFD42C</color>
+    <color name="green">#2FE74B</color>
+    <color name="orange">#E7A14B</color>
 
 </resources>

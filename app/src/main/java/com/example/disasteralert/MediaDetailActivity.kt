@@ -1,21 +1,29 @@
 package com.example.disasteralert
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
+import android.provider.Settings
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.VideoView
-import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
+import com.google.android.gms.location.LocationServices
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MediaDetailActivity : AppCompatActivity() {
 
@@ -34,191 +42,171 @@ class MediaDetailActivity : AppCompatActivity() {
     private lateinit var radioLevel2: RadioButton
     private lateinit var radioLevel3: RadioButton
     private lateinit var radioLevel4: RadioButton
+    private var myLatitude: Double? = null
+    private var myLongitude: Double? = null
 
+    private lateinit var mylocationText: TextView
+    private lateinit var fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient
+
+    private val REQUEST_LOCATION_PERMISSION = 101
+    private val firestore = FirebaseFirestore.getInstance() // Initialize Firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_detail)
 
+        // Initialize views
+        initializeViews()
+
+        // Check for permissions and get location
+        checkPermissions()
+        getLocation()
+
+        // Retrieve data from intent
+        val latitude = intent.getDoubleExtra("latitude", 0.0)
+        val longitude = intent.getDoubleExtra("longitude", 0.0)
+        val uniqueId = intent.getStringExtra("uniqueId")
+
+        // Show latitude, longitude, and uniqueId in Toast
+        showLocationInfo(latitude, longitude, uniqueId)
+
+        // Set up listeners
+        setupListeners(latitude, longitude)
+
+        // Load media based on its type
+        loadMedia()
+    }
+
+    private fun initializeViews() {
+        mylocationText = findViewById(R.id.mylocation_text)
         mediaImageView = findViewById(R.id.media_image)
         mediaVideoView = findViewById(R.id.media_video)
         descriptionTextView = findViewById(R.id.media_description)
         loadingProgressBar = findViewById(R.id.media_loading)
         weatherButton = findViewById(R.id.weatherid)
         mapButton = findViewById(R.id.mapid)
-
         deployButton = findViewById(R.id.deployid)
-        disasterDetailsEditText =
-            findViewById(R.id.disaster_details_input) // Update this ID based on your XML
-        alertButton = findViewById(R.id.alert_button) // Update this ID based on your XML
-
-        radioGroup = findViewById(R.id.radio_group) // Make sure this ID is correct in your XML
-
+        disasterDetailsEditText = findViewById(R.id.disaster_details_input)
+        alertButton = findViewById(R.id.alert_button)
+        radioGroup = findViewById(R.id.radio_group)
         radioLevel1 = findViewById(R.id.radio_level_1)
         radioLevel2 = findViewById(R.id.radio_level_2)
         radioLevel3 = findViewById(R.id.radio_level_3)
         radioLevel4 = findViewById(R.id.radio_level_4)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+    }
 
-        // Set listener for RadioGroup
-        radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            // Clear tick from all RadioButtons first
-            radioLevel1.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel2.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel3.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel4.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
+    private fun showLocationInfo(latitude: Double, longitude: Double, uniqueId: String?) {
+        Toast.makeText(this, "Latitude: $latitude", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Longitude: $longitude", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "UniqueId: $uniqueId", Toast.LENGTH_SHORT).show()
+    }
 
-            when (checkedId) {
-                R.id.radio_level_1 -> {
-                    // Show tick icon for Level 1 on the right side
-                    radioLevel1.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-                R.id.radio_level_2 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel2.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-                R.id.radio_level_3 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel3.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-                R.id.radio_level_4 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel4.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-            }
-        }
-        radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            // Clear tick from all RadioButtons first
-            radioLevel1.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel2.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel3.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel4.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-
-            when (checkedId) {
-                R.id.radio_level_1 -> {
-                    // Show tick icon for Level 1 on the right side
-                    radioLevel1.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-                R.id.radio_level_2 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel2.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-                R.id.radio_level_3 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel3.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-                R.id.radio_level_4 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel4.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-            }
-        }
-        radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            // Clear tick from all RadioButtons first
-            radioLevel1.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel2.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel3.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-            radioLevel4.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-
-
-            when (checkedId) {
-                R.id.radio_level_1 -> {
-                    // Show tick icon for Level 1 on the right side
-                    radioLevel1.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-                R.id.radio_level_2 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel2.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-                R.id.radio_level_3 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel3.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-                R.id.radio_level_4 -> {
-                    // Show tick icon for Level 2 on the right side
-                    radioLevel4.setCompoundDrawablesWithIntrinsicBounds(
-                        null, null,
-                        ContextCompat.getDrawable(this, R.drawable.tick_icon), null
-                    )
-                }
-
-            }
-        }
-
-
-        // Set click listeners for circular image buttons
+    private fun setupListeners(latitude: Double, longitude: Double) {
+        // Set up click listeners for various buttons
         weatherButton.setOnClickListener {
-            startActivity(Intent(this, GeocodeActivity::class.java))
+            val intent = Intent(this, GeocodeActivity::class.java).apply {
+                putExtra("LATITUDE", latitude)
+                putExtra("LONGITUDE", longitude)
+            }
+            startActivity(intent)
         }
 
         mapButton.setOnClickListener {
-            startActivity(Intent(this, RouteActivity::class.java))
+            val intent = Intent(this, RouteActivity::class.java).apply {
+                putExtra("LATITUDE", latitude)
+                putExtra("LONGITUDE", longitude)
+                putExtra("MyLATITUDE", myLatitude)
+                putExtra("MyLONGITUDE", myLongitude)
+            }
+            startActivity(intent)
         }
 
         deployButton.setOnClickListener {
             startActivity(Intent(this, DeploymentActivity::class.java))
         }
 
-        // Set up Alert button click listener
         alertButton.setOnClickListener {
-            val disasterDetails = disasterDetailsEditText.text.toString()
-            // Handle the alert logic here (e.g., send data to a server)
+            saveDisasterAlert()
         }
 
-        // Retrieve data from intent
+        // Set listener for RadioGroup
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            clearRadioButtons()
+            when (checkedId) {
+                R.id.radio_level_1 -> {
+                    showTickIcon(radioLevel1)
+                }
+                R.id.radio_level_2 -> {
+                    showTickIcon(radioLevel2)
+                }
+                R.id.radio_level_3 -> {
+                    showTickIcon(radioLevel3)
+                }
+                R.id.radio_level_4 -> {
+                    showTickIcon(radioLevel4)
+                }
+            }
+        }
+    }
+
+    private fun clearRadioButtons() {
+        radioLevel1.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
+        radioLevel2.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
+        radioLevel3.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
+        radioLevel4.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
+    }
+
+    private fun showTickIcon(radioButton: RadioButton) {
+        radioButton.setCompoundDrawablesWithIntrinsicBounds(
+            null, null,
+            ContextCompat.getDrawable(this, R.drawable.tick_icon), null
+        )
+    }
+
+    private fun loadMedia() {
         val description = intent.getStringExtra("description") ?: "No description available"
         val mediaUrl = intent.getStringExtra("mediaUrl")
         val mediaType = intent.getStringExtra("mediaType")
 
         descriptionTextView.text = description
 
-        // Load media based on its type
-        if (mediaType == "image") {
-            loadImage(mediaUrl)
-        } else if (mediaType == "video") {
-            loadVideo(mediaUrl)
+        when (mediaType) {
+            "image" -> loadImage(mediaUrl)
+            "video" -> loadVideo(mediaUrl)
+            else -> descriptionTextView.text = "Unsupported media type."
+        }
+    }
+
+    private fun checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_PERMISSION)
+        }
+    }
+
+    private fun getLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                Toast.makeText(this, "Please enable location services", Toast.LENGTH_SHORT).show()
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+                return
+            }
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    val myLatitude = location.latitude
+                    val myLongitude = location.longitude
+                    mylocationText.text = "Location: Lat: $myLatitude, Long: $myLongitude"
+                } else {
+                    mylocationText.text = "Location: Not available"
+                    Toast.makeText(this, "Failed to retrieve location", Toast.LENGTH_SHORT).show()
+                }
+            }
+
         } else {
-            descriptionTextView.text = "Unsupported media type."
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_PERMISSION)
         }
     }
 
@@ -265,4 +253,47 @@ class MediaDetailActivity : AppCompatActivity() {
             loadingProgressBar.visibility = ProgressBar.GONE
         }
     }
+
+    private fun saveDisasterAlert() {
+        val disasterDetails = disasterDetailsEditText.text.toString().trim()
+        val alertLevel = when (radioGroup.checkedRadioButtonId) {
+            R.id.radio_level_1 -> "Level 1"
+            R.id.radio_level_2 -> "Level 2"
+            R.id.radio_level_3 -> "Level 3"
+            R.id.radio_level_4 -> "Level 4"
+            else -> null
+        }
+
+        if (disasterDetails.isNotEmpty() && alertLevel != null) {
+            val alertData = hashMapOf(
+                "details" to disasterDetails,
+                "level" to alertLevel
+            )
+
+            firestore.collection("disaster_alerts")
+                .add(alertData)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Disaster alert saved successfully.", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Log.w("MediaDetailActivity", "Error saving disaster alert", e)
+                    Toast.makeText(this, "Failed to save disaster alert.", Toast.LENGTH_SHORT).show()
+                }
+        } else {
+            Toast.makeText(this, "Please fill in the details and select an alert level.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults) // Call the super method
+
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getLocation()
+            } else {
+                Toast.makeText(this, "Location permission denied.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 }

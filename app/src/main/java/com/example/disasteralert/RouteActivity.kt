@@ -24,6 +24,22 @@ class RouteActivity : AppCompatActivity() {
         val calculateRouteButton = findViewById<Button>(R.id.calculateRouteButton)
         val routeTextView = findViewById<TextView>(R.id.routeTextView)
 
+        // Receive latitude and longitude from the Intent
+        val myLatitude = intent.getStringExtra("MyLATITUDE")
+        val myLongitude = intent.getStringExtra("MyLONGITUDE")
+        val destLat = intent.getStringExtra("LATITUDE")
+        val destLng = intent.getStringExtra("LONGITUDE")
+
+        Toast.makeText(this, "My Location: ($myLatitude, $myLongitude)\nDestination: ($destLat, $destLng)", Toast.LENGTH_LONG).show()
+
+        // Set the received coordinates in the EditText fields
+        if (myLatitude != null && myLongitude != null) {
+            startPointEditText.setText("$myLatitude, $myLongitude")
+        }
+        if (destLat != null && destLng != null) {
+            destinationPointEditText.setText("$destLat, $destLng")
+        }
+
         // Handle route calculation button click
         calculateRouteButton.setOnClickListener {
             val startPoint = startPointEditText.text.toString()
@@ -106,5 +122,4 @@ class RouteActivity : AppCompatActivity() {
             }
         }.start()
     }
-
 }

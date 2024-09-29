@@ -4,9 +4,13 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.Settings
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -15,6 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.OnSuccessListener
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,9 +33,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var uploadButton: Button
     private lateinit var locationText: TextView
     private lateinit var status_text: TextView
+    private lateinit var alertlayout: View
 
 
 
+    private lateinit var alertLevelText: TextView
+    private lateinit var disasterInfoText: TextView
+    private lateinit var alertDetailsText: TextView
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var latitude: Double? = null
     private var longitude: Double? = null
@@ -55,15 +64,29 @@ class MainActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.upload_progress)
         uploadButton = findViewById(R.id.upload_button)
         locationText = findViewById(R.id.location_text)
-
         status_text = findViewById(R.id.status_text)
 
-        status_text.setOnClickListener {
-            val intent = Intent(this, MediaListActivity ::class.java)
-            startActivity(intent)
+        alertLevelText = findViewById(R.id.alert_level_text)
+        disasterInfoText = findViewById(R.id.disaster_info_text)
+        alertDetailsText = findViewById(R.id.alert_details_text)
+
+        alertlayout = findViewById(R.id.alertLayout) // Ensure you reference the correct layout ID here
+
+
+
+        firestore = FirebaseFirestore.getInstance()
+        fetchDisasterAlertDetails()
+
+
+        alertlayout.setOnClickListener{
+            startActivity(Intent(this, InformActivity ::class.java))
         }
 
 
+        status_text.setOnClickListener {
+            val intent = Intent(this, MediaListActivity::class.java)
+            startActivity(intent)
+        }
 
         // Check and request permissions
         checkPermissions()
@@ -85,6 +108,7 @@ class MainActivity : AppCompatActivity() {
         getLocation()
     }
 
+
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
@@ -96,14 +120,38 @@ class MainActivity : AppCompatActivity() {
 
     private fun getLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                Toast.makeText(this, "Please enable location services", Toast.LENGTH_SHORT).show()
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+                return
+            }
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     latitude = location.latitude
                     longitude = location.longitude
                     locationText.text = "Location: Lat: $latitude, Long: $longitude"
                 } else {
                     locationText.text = "Location: Not available"
+                    Toast.makeText(this, "Failed to retrieve location", Toast.LENGTH_SHORT).show()
                 }
+            }.addOnFailureListener {
+                Toast.makeText(this, "Error getting location: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_PERMISSION)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getLocation()
+            } else {
+                Toast.makeText(this, "Location permission is required", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -230,27 +278,72 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getImageUriFromBitmap(bitmap: Bitmap): Uri {
-        val path = MediaStore.Images.Media.insertImage(contentResolver, bitmap, "Captured Image", null)
+        val path = MediaStore.Images.Media.insertImage(contentResolver, bitmap, "CapturedImage", null)
         return Uri.parse(path)
     }
+    private fun fetchDisasterAlertDetails() {
+        firestore.collection("alerts")
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(1)
+            .addSnapshotListener { documents, exception ->
+                if (exception != null) {
+                    Toast.makeText(this, "Error fetching data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    return@addSnapshotListener
+                }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_CAMERA_PERMISSION -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission granted, do nothing
+                if (documents != null && !documents.isEmpty) {
+                    for (document in documents) {
+                        val alertLevel = document.getString("alert_level") ?: "No Level"
+                        val details = document.getString("details") ?: "No Details"
+                        val status = document.getString("status") ?: "Processing"  // Retrieve the status
+
+                        alertLevelText.text = alertLevel
+                        alertDetailsText.text = details
+                        status_text.text = status  // Update the status TextView
+
+                        // Call the function to update background and show toast
+                        updateAlertLayoutColor(alertLevel)
+                    }
                 } else {
-                    Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show()
+                    alertLevelText.text = "No Alerts"
+                    alertDetailsText.text = "No Details"
+                    status_text.text = "No Status"  // Handle case with no alerts
                 }
             }
-            REQUEST_LOCATION_PERMISSION -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getLocation()
-                } else {
-                    Toast.makeText(this, "Location permission is required", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateAlertLayoutColor(alertLevel: String) {
+        val alertLayout: LinearLayout = findViewById(R.id.alertLayout) // Reference your LinearLayout
+
+        // Ensure the background update happens on the main thread
+        runOnUiThread {
+            when (alertLevel) {
+                "Level 1" -> {
+                    alertLayout.setBackgroundResource(R.drawable.radio_button_background_green)
+                    Toast.makeText(this, "Alert Level 1", Toast.LENGTH_SHORT).show()
+                }
+                "Level 2" -> {
+                    alertLayout.setBackgroundResource(R.drawable.radio_button_background_yellow)
+                    Toast.makeText(this, "Alert Level 2", Toast.LENGTH_SHORT).show()
+                }
+                "Level 3" -> {
+                    alertLayout.setBackgroundResource(R.drawable.radio_button_background_orange)
+                    Toast.makeText(this, "Alert Level 3", Toast.LENGTH_SHORT).show()
+                }
+                "Level 4" -> {
+                    alertLayout.setBackgroundResource(R.drawable.radio_button_background_red)
+                    Toast.makeText(this, "Alert Level 4", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    alertLayout.setBackgroundResource(R.drawable.radio_button_background_green) // Default to green
+                    Toast.makeText(this, "Unknown Alert Level", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
+
+
+
+
+
 }

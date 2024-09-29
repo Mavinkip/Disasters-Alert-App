@@ -3,12 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:background="@drawable/gredient_background"
     android:padding="16dp">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/gredient_background"
         android:orientation="horizontal">
+
         <TextView
             android:textColor="@color/white"
             android:id="@+id/media_description"
@@ -27,6 +30,13 @@
 
     </LinearLayout>
 
-
+    <!-- Add this TextView for the status -->
+    <TextView
+        android:textColor="@color/white"
+        android:id="@+id/media_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="To be processed"
+        android:textSize="14sp" />
 
 </LinearLayout>
