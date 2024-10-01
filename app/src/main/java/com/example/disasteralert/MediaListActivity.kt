@@ -1,6 +1,8 @@
 package com.example.disasteralert
 
 import android.content.Intent
+import com.google.firebase.firestore.SetOptions
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -31,7 +33,12 @@ class MediaListActivity : AppCompatActivity() {
         mediaRecyclerView.adapter = adapter
 
         firestore = FirebaseFirestore.getInstance()
-        // Fetch all necessary fields from Firestore
+
+        // Fetch media items
+        fetchMediaItems(adapter)
+    }
+
+    private fun fetchMediaItems(adapter: MediaAdapter) {
         firestore.collection("media").get().addOnSuccessListener { documents ->
             for (document in documents) {
                 val description = document.getString("description") ?: ""
@@ -41,47 +48,72 @@ class MediaListActivity : AppCompatActivity() {
                 val longitude = document.getDouble("longitude") ?: 0.0
                 val uniqueId = document.getString("uniqueId") ?: ""
 
-                // Add the MediaItem to the list with all the fields
+                ///Toast.makeText(this, "Fetched uniqueId: $uniqueId", Toast.LENGTH_SHORT).show()
+
+
+                // Create a MediaItem and add it to the list
                 mediaList.add(MediaItem(description, mediaUrl, mediaType, latitude, longitude, uniqueId))
             }
             adapter.notifyDataSetChanged()
+        }.addOnFailureListener { e ->
+         //   Toast.makeText(this, "Error fetching media items: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun onMediaItemClick(mediaItem: MediaItem) {
         // Open MediaDetailActivity
-        val intent = Intent(this, MediaDetailActivity::class.java)
-        intent.putExtra("description", mediaItem.description)
-        intent.        putExtra("mediaType", mediaItem.mediaType)
+        val intent = Intent(this, MediaDetailActivity::class.java).apply {
+            putExtra("description", mediaItem.description)
+            putExtra("mediaType", mediaItem.mediaType)
+            putExtra("mediaUrl", mediaItem.mediaUrl)
+            putExtra("latitude", mediaItem.latitude) // Pass latitude
+            putExtra("longitude", mediaItem.longitude) // Pass longitude
+        }
 
-        intent.        putExtra("mediaUrl", mediaItem.mediaUrl)
-
-        intent.  putExtra("latitude", mediaItem.latitude) // Pass latitude
-        intent. putExtra("longitude", mediaItem.longitude) // Pass longitu
         // Update Firestore and log the media item details
 
 
-        updateMediaItemStatus(mediaItem)
+        updateMediaItemStatus(mediaItem.uniqueId) // Pass the uniqueId to the update function
+        //Toast.makeText(this, "Fetched detais: $mediaItem", Toast.LENGTH_SHORT).show()
 
         // Start the MediaDetailActivity
         startActivity(intent)
     }
 
-    private fun updateMediaItemStatus(mediaItem: MediaItem) {
-        // Change status to "Processed"
-        mediaItem.status = "Processed"
+    private fun updateMediaItemStatus(userId: String) {
+        // Query the statuses collection where the userId matches
+        firestore.collection("statuses")
+            .whereEqualTo("userId", userId)
+            .limit(1) // Assuming only one status per user
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val document = documents.firstOrNull()
+                    val documentId = document?.id // Get the document ID
 
-        // Update the Firestore document with the new status
-        firestore.collection("media").document(mediaItem.uniqueId).update("status", mediaItem.status)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Status updated to 'Processed'", Toast.LENGTH_SHORT).show()
+                    if (documentId != null) {
+                        // Proceed with updating the status
+                        val statusData: MutableMap<String, Any> = HashMap()
+                        statusData["status"] = "Processed" // Set the status to "Processed"
+
+                        firestore.collection("statuses").document(documentId)
+                            .update(statusData)
+                            .addOnSuccessListener {
+                             //   Toast.makeText(this, "Status updated to 'Processed' for user ID: $userId", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { e ->
+                            //    Toast.makeText(this, "Error updating status: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    } else {
+                     //   Toast.makeText(this, "No document found with user ID: $userId", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                  //  Toast.makeText(this, "No status document found for user ID: $userId", Toast.LENGTH_SHORT).show()
+                }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error updating status: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error retrieving status document: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-
-        // Optionally log media item details
-        logMediaItem(mediaItem)
     }
 
     private fun logMediaItem(mediaItem: MediaItem) {
@@ -96,7 +128,7 @@ class MediaListActivity : AppCompatActivity() {
             Status: ${mediaItem.status}
         """.trimIndent()
 
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        // Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     // MediaItem data class to include latitude, longitude, and uniqueId

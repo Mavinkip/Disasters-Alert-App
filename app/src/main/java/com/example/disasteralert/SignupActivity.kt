@@ -83,6 +83,7 @@ class SignUpActivity : AppCompatActivity() {
 
     private fun saveUserToDatabase(uid: String, name: String, email: String, role: String) {
         val user = hashMapOf(
+            "userId" to uid,  // Added userId to the data being saved
             "name" to name,
             "email" to email,
             "role" to role

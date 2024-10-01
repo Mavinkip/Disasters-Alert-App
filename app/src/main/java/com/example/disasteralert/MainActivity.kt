@@ -4,12 +4,14 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +22,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,6 +37,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationText: TextView
     private lateinit var status_text: TextView
     private lateinit var alertlayout: View
+    private lateinit var logoutButton: TextView
+    private lateinit var auth: FirebaseAuth // Declare auth here
+
+
 
 
 
@@ -57,6 +64,8 @@ class MainActivity : AppCompatActivity() {
         storage = FirebaseStorage.getInstance()
         firestore = FirebaseFirestore.getInstance()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        auth = FirebaseAuth.getInstance() // Initialize FirebaseAuth here
+
 
         // Initialize UI components
         imageView = findViewById(R.id.captured_image)
@@ -69,6 +78,8 @@ class MainActivity : AppCompatActivity() {
         alertLevelText = findViewById(R.id.alert_level_text)
         disasterInfoText = findViewById(R.id.disaster_info_text)
         alertDetailsText = findViewById(R.id.alert_details_text)
+        logoutButton = findViewById(R.id.logout_button)
+
 
         alertlayout = findViewById(R.id.alertLayout) // Ensure you reference the correct layout ID here
 
@@ -78,10 +89,15 @@ class MainActivity : AppCompatActivity() {
         fetchDisasterAlertDetails()
 
 
+
+
         alertlayout.setOnClickListener{
             startActivity(Intent(this, InformActivity ::class.java))
         }
 
+        logoutButton.setOnClickListener {
+            logout()
+        }
 
         status_text.setOnClickListener {
             val intent = Intent(this, MediaListActivity::class.java)
@@ -90,6 +106,11 @@ class MainActivity : AppCompatActivity() {
 
         // Check and request permissions
         checkPermissions()
+
+        val uniqueId = firestore.collection("media").document().id // Example of generating a unique ID
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "defaultUserId"
+        fetchStatus(uniqueId,userId)
+
 
         // Set click listeners for buttons
         findViewById<ImageButton>(R.id.capture_image_button).setOnClickListener {
@@ -107,7 +128,14 @@ class MainActivity : AppCompatActivity() {
         // Get the current location
         getLocation()
     }
+    private fun logout() {
+        auth.signOut() // Sign out from Firebase Auth
+        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
 
+        // Optionally, navigate back to login activity or update UI accordingly
+         startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
 
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -135,10 +163,10 @@ class MainActivity : AppCompatActivity() {
                     locationText.text = "Location: Lat: $latitude, Long: $longitude"
                 } else {
                     locationText.text = "Location: Not available"
-                    Toast.makeText(this, "Failed to retrieve location", Toast.LENGTH_SHORT).show()
+                   // Toast.makeText(this, "Failed to retrieve location", Toast.LENGTH_SHORT).show()
                 }
             }.addOnFailureListener {
-                Toast.makeText(this, "Error getting location: ${it.message}", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Error getting location: ${it.message}", Toast.LENGTH_SHORT).show()
             }
         } else {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_PERMISSION)
@@ -260,6 +288,7 @@ class MainActivity : AppCompatActivity() {
         val uniqueId = firestore.collection("media").document().id
         val data = hashMapOf(
             "uniqueId" to uniqueId,
+
             "description" to description,
             "mediaUrl" to mediaUrl,
             "mediaType" to mediaType,
@@ -275,6 +304,11 @@ class MainActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, "Failed to add description", Toast.LENGTH_SHORT).show()
             }
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "defaultUserId" // Get user ID or set a default
+
+// Call the sendStatusToFirestore function with the userId
+        sendStatusToFirestore(uniqueId)
+
     }
 
     private fun getImageUriFromBitmap(bitmap: Bitmap): Uri {
@@ -282,35 +316,112 @@ class MainActivity : AppCompatActivity() {
         return Uri.parse(path)
     }
     private fun fetchDisasterAlertDetails() {
-        firestore.collection("alerts")
+        firestore.collection("disaster_alerts")
             .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .limit(1)
-            .addSnapshotListener { documents, exception ->
+            .addSnapshotListener { snapshot, exception ->
                 if (exception != null) {
                     Toast.makeText(this, "Error fetching data: ${exception.message}", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
 
-                if (documents != null && !documents.isEmpty) {
-                    for (document in documents) {
-                        val alertLevel = document.getString("alert_level") ?: "No Level"
+                if (snapshot != null && !snapshot.isEmpty) {
+                    for (document in snapshot.documents) {
+                        val alertLevel = document.getString("level") ?: "No Level"
                         val details = document.getString("details") ?: "No Details"
-                        val status = document.getString("status") ?: "Processing"  // Retrieve the status
+                        val status = document.getString("status") ?: "Processing"
 
                         alertLevelText.text = alertLevel
                         alertDetailsText.text = details
-                        status_text.text = status  // Update the status TextView
+                        status_text.text = status
 
-                        // Call the function to update background and show toast
+                        // Update layout color based on the alert level
                         updateAlertLayoutColor(alertLevel)
                     }
                 } else {
+                    // Handle empty snapshot case
                     alertLevelText.text = "No Alerts"
                     alertDetailsText.text = "No Details"
-                    status_text.text = "No Status"  // Handle case with no alerts
+                    status_text.text = "No Status"
                 }
             }
     }
+
+    data class Status(
+        val uniqueId: String,
+        val status: String
+    )
+    private fun sendStatusToFirestore(userId: String) {
+        // Create a unique ID for the status
+        val uniqueId = firestore.collection("statuses").document().id
+
+        // Create a data map for the status
+        val statusData = hashMapOf(
+            "uniqueId" to uniqueId,
+            "userId" to userId         // Include userId in the status data
+        )
+
+        // Save the status data to Firestore
+        firestore.collection("statuses").document(uniqueId)
+            .set(statusData)
+            .addOnSuccessListener {
+           //     Toast.makeText(this, "Status added successfully with ID: $uniqueId", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to add status", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
+    private fun fetchStatus(uniqueId: String, userId: String) {
+        // Reference to the Firestore statuses collection
+        val statusDocRef = firestore.collection("statuses")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("uniqueId", uniqueId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                // Check if the query returned any documents
+                if (!querySnapshot.isEmpty) {
+                    // Get the first document (assuming uniqueId is unique)
+                    val document = querySnapshot.documents[0]
+                    // Check if the document contains the status field
+                    if (document.contains("status")) {
+                        // Get the status, defaulting to "Processing" if not found
+                        val status = document.getString("status") ?: "Processing"
+                        Log.d("Firestore", "Status fetched: $status")
+
+                        // Update the status text in the TextView
+                        status_text.text = "Status: $status"
+
+                        // Change the text color based on the status
+                        when (status) {
+                            "Processed" -> status_text.setTextColor(Color.GREEN)
+                            "Processing" -> status_text.setTextColor(Color.YELLOW)
+                            "Failed" -> status_text.setTextColor(Color.RED)
+                            else -> status_text.setTextColor(Color.GRAY)
+                        }
+                    } else {
+                        Log.e("Firestore", "Document doesn't contain 'status' field")
+                        status_text.text = "Status: No Status"
+                        status_text.setTextColor(Color.GRAY)
+                    }
+                } else {
+                    // Handle case where no documents match the query
+                    Log.e("Firestore", "No documents found for the given userId and uniqueId")
+                    status_text.text = "Status: No Status"
+                    status_text.setTextColor(Color.GRAY)
+                }
+            }
+            .addOnFailureListener { e ->
+                // Handle the error
+                Log.e("Firestore", "Error fetching status: ${e.message}")
+                status_text.text = "Error fetching status"
+                status_text.setTextColor(Color.RED)
+           //     Toast.makeText(this, "Error fetching status: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
 
     private fun updateAlertLayoutColor(alertLevel: String) {
         val alertLayout: LinearLayout = findViewById(R.id.alertLayout) // Reference your LinearLayout

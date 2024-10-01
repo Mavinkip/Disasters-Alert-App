@@ -17,12 +17,15 @@ import android.widget.TextView
 import android.widget.VideoView
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.LocationServices
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MediaDetailActivity : AppCompatActivity() {
@@ -37,13 +40,18 @@ class MediaDetailActivity : AppCompatActivity() {
     private lateinit var disasterDetailsEditText: EditText
     private lateinit var alertButton: Button
     private lateinit var radioGroup: RadioGroup
+    private lateinit var logoutButton: TextView
+    private lateinit var auth: FirebaseAuth // Declare auth here
+
+
+
+    private var myLatitude: Double = 0.0
+    private var myLongitude: Double = 0.0
 
     private lateinit var radioLevel1: RadioButton
     private lateinit var radioLevel2: RadioButton
     private lateinit var radioLevel3: RadioButton
     private lateinit var radioLevel4: RadioButton
-    private var myLatitude: Double? = null
-    private var myLongitude: Double? = null
 
     private lateinit var mylocationText: TextView
     private lateinit var fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient
@@ -61,6 +69,12 @@ class MediaDetailActivity : AppCompatActivity() {
         // Check for permissions and get location
         checkPermissions()
         getLocation()
+        auth = FirebaseAuth.getInstance() // Initialize FirebaseAuth here
+        logoutButton = findViewById(R.id.logout_button)
+        logoutButton.setOnClickListener {
+            logout()
+        }
+
 
         // Retrieve data from intent
         val latitude = intent.getDoubleExtra("latitude", 0.0)
@@ -95,11 +109,22 @@ class MediaDetailActivity : AppCompatActivity() {
         radioLevel4 = findViewById(R.id.radio_level_4)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
+    // Function to save deployment data to Firestore
+
+
 
     private fun showLocationInfo(latitude: Double, longitude: Double, uniqueId: String?) {
         Toast.makeText(this, "Latitude: $latitude", Toast.LENGTH_SHORT).show()
         Toast.makeText(this, "Longitude: $longitude", Toast.LENGTH_SHORT).show()
         Toast.makeText(this, "UniqueId: $uniqueId", Toast.LENGTH_SHORT).show()
+    }
+    private fun logout() {
+        auth.signOut() // Sign out from Firebase Auth
+        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
+
+        // Optionally, navigate back to login activity or update UI accordingly
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
     }
 
     private fun setupListeners(latitude: Double, longitude: Double) {
@@ -113,6 +138,8 @@ class MediaDetailActivity : AppCompatActivity() {
         }
 
         mapButton.setOnClickListener {
+          //  Toast.makeText(this, "Passing Coordinates:\nMy Location: ($myLatitude, $myLongitude)\nDestination: ($latitude, $longitude)", Toast.LENGTH_LONG).show()
+
             val intent = Intent(this, RouteActivity::class.java).apply {
                 putExtra("LATITUDE", latitude)
                 putExtra("LONGITUDE", longitude)
@@ -123,12 +150,18 @@ class MediaDetailActivity : AppCompatActivity() {
         }
 
         deployButton.setOnClickListener {
-            startActivity(Intent(this, DeploymentActivity::class.java))
+            startActivity(Intent(this, DisasterAlertListActivity::class.java))
         }
+        val emergencyServiceSpinner = findViewById<Spinner>(R.id.emergencyServiceSpinner)
 
         alertButton.setOnClickListener {
-            saveDisasterAlert()
+            // Get the selected service from the Spinner
+            val selectedService = emergencyServiceSpinner.selectedItem.toString()
+
+            // Pass the selected service to the saveDisasterAlert function
+            saveDisasterAlert(selectedService)
         }
+
 
         // Set listener for RadioGroup
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -196,12 +229,14 @@ class MediaDetailActivity : AppCompatActivity() {
 
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 if (location != null) {
-                    val myLatitude = location.latitude
-                    val myLongitude = location.longitude
+                    myLatitude = location.latitude
+                    myLongitude = location.longitude
                     mylocationText.text = "Location: Lat: $myLatitude, Long: $myLongitude"
+                    //Toast.makeText(this, "Latitude: $myLatitude, Longitude: $myLongitude", Toast.LENGTH_SHORT).show()
+
                 } else {
                     mylocationText.text = "Location: Not available"
-                    Toast.makeText(this, "Failed to retrieve location", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this, "Failed to retrieve location", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -244,56 +279,48 @@ class MediaDetailActivity : AppCompatActivity() {
             mediaVideoView.setOnErrorListener { _, what, extra ->
                 loadingProgressBar.visibility = ProgressBar.GONE
                 mediaVideoView.visibility = VideoView.GONE
-                descriptionTextView.text = "Failed to play video. Error: what=$what, extra=$extra"
+                descriptionTextView.text = "Error loading video."
                 true
             }
         } else {
             descriptionTextView.text = "Video URL is not valid."
-            mediaVideoView.visibility = VideoView.GONE
-            loadingProgressBar.visibility = ProgressBar.GONE
         }
     }
 
-    private fun saveDisasterAlert() {
-        val disasterDetails = disasterDetailsEditText.text.toString().trim()
-        val alertLevel = when (radioGroup.checkedRadioButtonId) {
+    private fun saveDisasterAlert(selectedService: String) {
+        val disasterDetails = disasterDetailsEditText.text.toString()
+        val disasterLevel = when (radioGroup.checkedRadioButtonId) {
             R.id.radio_level_1 -> "Level 1"
             R.id.radio_level_2 -> "Level 2"
             R.id.radio_level_3 -> "Level 3"
             R.id.radio_level_4 -> "Level 4"
-            else -> null
+            else -> "Unknown Level"
         }
 
-        if (disasterDetails.isNotEmpty() && alertLevel != null) {
-            val alertData = hashMapOf(
-                "details" to disasterDetails,
-                "level" to alertLevel
+        // Create alertData with deployment as a nested field
+        val alertData = hashMapOf(
+            "details" to disasterDetails,
+            "level" to disasterLevel,
+            "location" to mapOf("latitude" to myLatitude, "longitude" to myLongitude),
+            "timestamp" to FieldValue.serverTimestamp(),
+            "deployment" to mapOf(  // Nested deployment data
+                "serviceDeployed" to selectedService,
+                "timestamp" to System.currentTimeMillis() // Example of timestamp
             )
+        )
 
-            firestore.collection("disaster_alerts")
-                .add(alertData)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Disaster alert saved successfully.", Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener { e ->
-                    Log.w("MediaDetailActivity", "Error saving disaster alert", e)
-                    Toast.makeText(this, "Failed to save disaster alert.", Toast.LENGTH_SHORT).show()
-                }
-        } else {
-            Toast.makeText(this, "Please fill in the details and select an alert level.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults) // Call the super method
-
-        if (requestCode == REQUEST_LOCATION_PERMISSION) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getLocation()
-            } else {
-                Toast.makeText(this, "Location permission denied.", Toast.LENGTH_SHORT).show()
+        // Save the alert and deployment in a single Firestore document
+        firestore.collection("disaster_alerts")
+            .add(alertData)
+            .addOnSuccessListener {
+              //  Toast.makeText(this, "Disaster alert and deployment saved successfully.", Toast.LENGTH_SHORT).show()
             }
-        }
+            .addOnFailureListener { e ->
+                Log.w("MediaDetailActivity", "Error saving disaster alert", e)
+               // Toast.makeText(this, "Failed to save disaster alert.", Toast.LENGTH_SHORT).show()
+            }
     }
+
 
 }
+

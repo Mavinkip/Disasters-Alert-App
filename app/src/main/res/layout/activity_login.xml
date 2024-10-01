@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/blue"
+    android:background="@drawable/outlook"
     android:padding="16dp">
 
     <TextView
@@ -16,7 +16,23 @@
         android:textStyle="bold"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="32dp" />
+    <!-- Round ImageView for profile picture -->
+    <ImageView
+        android:id="@+id/ivProfile"
+        android:layout_width="84dp"
+        android:layout_height="86dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="Profile Image"
+        android:background="@android:color/transparent"
 
+        android:scaleType="centerCrop"
+        android:src="@drawable/logoalert" />
+
+    <!-- Login Title -->
+
+
+    <!-- Email Input -->
     <EditText
         android:id="@+id/etEmail"
         android:layout_width="match_parent"
@@ -25,8 +41,9 @@
         android:inputType="textEmailAddress"
         android:padding="12dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/rounded_edittext" />
+        android:background="@drawable/rounded_edittext_background"  />
 
+    <!-- Password Input -->
     <EditText
         android:id="@+id/etPassword"
         android:layout_width="match_parent"
@@ -35,36 +52,42 @@
         android:inputType="textPassword"
         android:padding="12dp"
         android:layout_marginBottom="24dp"
-        android:background="@drawable/rounded_edittext" />
+        android:background="@drawable/rounded_edittext_background" />
 
+    <!-- Login Button -->
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Login"
-        android:background="@drawable/rounded_edittext"
+        android:background="@drawable/rounded_button"
         android:textColor="@android:color/white"
         android:padding="12dp" />
 
+    <!-- Sign Up Section -->
     <LinearLayout
         android:orientation="horizontal"
         android:layout_margin="16dp"
         android:layout_gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
+
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="dont have an acount:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Don't have an account: "
             android:textSize="16sp"
-            android:textColor="@color/white"/>
+            android:textColor="@android:color/white" />
+
         <TextView
             android:id="@+id/tvSignUp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Signup"
+            android:text="Sign up"
             android:textSize="16sp"
-            android:textColor="@color/white"
-            android:gravity="center"/>
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginLeft="8dp" />
     </LinearLayout>
 </LinearLayout>

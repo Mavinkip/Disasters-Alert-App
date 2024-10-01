@@ -3,8 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/gredient_background"
+    android:background="#122259"
     android:padding="16dp">
+
 
     <LinearLayout
         android:layout_width="match_parent"

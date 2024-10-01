@@ -25,19 +25,17 @@ class RouteActivity : AppCompatActivity() {
         val routeTextView = findViewById<TextView>(R.id.routeTextView)
 
         // Receive latitude and longitude from the Intent
-        val myLatitude = intent.getStringExtra("MyLATITUDE")
-        val myLongitude = intent.getStringExtra("MyLONGITUDE")
-        val destLat = intent.getStringExtra("LATITUDE")
-        val destLng = intent.getStringExtra("LONGITUDE")
-
-        Toast.makeText(this, "My Location: ($myLatitude, $myLongitude)\nDestination: ($destLat, $destLng)", Toast.LENGTH_LONG).show()
+        val myLatitude = intent.getDoubleExtra("MyLATITUDE", 0.0) // Change to getDoubleExtra
+        val myLongitude = intent.getDoubleExtra("MyLONGITUDE", 0.0) // Change to getDoubleExtra
+        val destinationLatitude = intent.getDoubleExtra("LATITUDE", 0.0)
+        val destinationLongitude = intent.getDoubleExtra("LONGITUDE", 0.0)
+        // Show toast with my coordinates
+        Toast.makeText(this, "My Location: ($myLatitude, $myLongitude)\nDestination: ($destinationLatitude, $destinationLongitude)", Toast.LENGTH_LONG).show()
 
         // Set the received coordinates in the EditText fields
-        if (myLatitude != null && myLongitude != null) {
-            startPointEditText.setText("$myLatitude, $myLongitude")
-        }
-        if (destLat != null && destLng != null) {
-            destinationPointEditText.setText("$destLat, $destLng")
+        startPointEditText.setText("$myLatitude, $myLongitude")
+        if (destinationLatitude != 0.0 && destinationLongitude != 0.0) { // Check if destination coordinates are valid
+            destinationPointEditText.setText("$destinationLatitude, $destinationLongitude")
         }
 
         // Handle route calculation button click

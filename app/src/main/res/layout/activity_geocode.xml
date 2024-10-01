@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@drawable/gredient_background"
     android:padding="16dp">
 
     <!-- Latitude and Longitude Fields for Reverse Geocoding -->
@@ -12,12 +13,16 @@
         android:layout_height="wrap_content"
         android:hint="Enter Latitude"
         android:inputType="numberDecimal"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
         android:minHeight="48dp" />
 
     <EditText
         android:id="@+id/longitudeEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
         android:hint="Enter Longitude"
         android:inputType="numberDecimal"
         android:minHeight="48dp" />
@@ -33,6 +38,8 @@
         android:id="@+id/cityEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
         android:hint="Enter City Name"
         android:minHeight="48dp" />
 
